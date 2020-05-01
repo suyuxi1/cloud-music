@@ -91,7 +91,8 @@ export default {
         artist: 'Ellie Goulding'
       }
     ]
-  })
+  }),
+  methods: {}
 }
 </script>
 

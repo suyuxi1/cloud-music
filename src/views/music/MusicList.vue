@@ -1,26 +1,28 @@
 <template>
-  <v-card max-width="400" class="mx-auto">
-    <v-container class="pa-1">
-      <span v-for="(item, index) in menus" :key="index" class="gutter">
-        <mu-button :color="item.icon">{{ item.title }}</mu-button>
-      </span>
-      <v-item-group v-model="selected" multiple>
-        <v-row>
-          <v-col v-for="(item, i) in items" :key="i" cols="12" md="6">
-            <v-item v-slot:default="{ active, toggle }">
-              <v-img :src="`https://cdn.vuetifyjs.com/images/${item.src}`" height="150" class="text-right pa-2" @click="toggle">
-                <v-btn icon dark>
-                  <v-icon>
-                    {{ active ? 'mdi-heart' : 'mdi-heart-outline' }}
-                  </v-icon>
-                </v-btn>
-              </v-img>
-            </v-item>
-          </v-col>
-        </v-row>
-      </v-item-group>
-    </v-container>
-  </v-card>
+  <v-container class="pa-1" style="height = 1000px">
+    <span v-for="(menu, index) in menus" :key="index" class="gutter">
+      <mu-button :color="menu.icon">{{ menu.title }}</mu-button>
+    </span>
+
+    <v-item-group v-model="selected" multiple>
+      <v-row>
+        <v-card class="mx-auto" max-width="200" v-for="(item, index1) in items" :key="index1">
+          <v-img class="white--text align-end" height="150px" :src="item.thumbnail"> </v-img>
+          <v-card-title>{{ item.songListName }}</v-card-title>
+          <!-- <v-card-subtitle class="pb-0">PLAYCOUNTS:{{ item.playCounts }}</v-card-subtitle>
+        <v-card-subtitle class="pb-0">SONGCOUNT:{{ item.songCount }}</v-card-subtitle>
+        <v-card-subtitle class="pb-0">LIKECOUNT:{{ item.likeCount }}</v-card-subtitle>
+        <v-card-subtitle class="pb-0">COMMENTCOUNT:{{ item.commentCount }}</v-card-subtitle> -->
+        </v-card>
+      </v-row>
+    </v-item-group>
+
+    <template>
+      <div class="text-center">
+        <v-pagination v-model="page" :length="pages"></v-pagination>
+      </div>
+    </template>
+  </v-container>
 </template>
 
 <script>
@@ -28,27 +30,47 @@ export default {
   name: 'MusicList',
   data() {
     return {
-      items: [
-        {
-          src: 'backgrounds/bg.jpg'
-        },
-        {
-          src: 'backgrounds/md.jpg'
-        },
-        {
-          src: 'backgrounds/bg-2.jpg'
-        },
-        {
-          src: 'backgrounds/md2.jpg'
-        }
-      ],
-      menus: []
+      items: [],
+      menus: [],
+      pages: 0,
+      page: 0
     }
   },
   created() {
+    // alert('开始')
     let index = this.$route.query.index
     let index1 = this.$route.query.index1
     this.menus = JSON.parse(localStorage.getItem('menuList'))[index].subMenus[index1].subMenus
+    // let role = this.$store.state.admin.roles[0].roleId
+    // console.log(this.role)
+    this.getPage()
+  },
+  watch: {
+    page: function() {
+      this.getPage()
+    }
+  },
+  methods: {
+    getPage() {
+      this.axios({
+        method: 'post',
+        url: this.GLOBAL.baseUrl + '/songList/page?roleId=' + localStorage.getItem('roleId'),
+        data: {
+          currentPage: this.page,
+          pageSize: 12
+        },
+        headers: { Authorization: localStorage.getItem('token') }
+      })
+        .then((res) => {
+          this.pages = res.data.data.pages
+          this.items = res.data.data.data
+          console.log(this.pages)
+          console.log(this.items)
+        })
+        .catch(function(error) {
+          console.log(error)
+        })
+    }
   }
 }
 </script>
